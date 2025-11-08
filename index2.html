@@ -60,12 +60,32 @@
       // Add zoom + rotation controls
       map.addControl(new mapboxgl.NavigationControl());
 
-      // Load your GeoJSON data
-      map.on("load", () => {
-        map.addSource("baha", {
-          type: "geojson",
-          data: "183data.geojson",
-        });
+map.on('load', () => {
+  map.addSource('landmarks', {
+    type: 'geojson',
+    data: '183data.geojson'
+  });
+
+  map.addLayer({
+    id: 'landmarks-layer',
+    type: 'circle',
+    source: 'landmarks',
+    paint: {
+      'circle-radius': 6,
+      'circle-color': '#FF5733',
+      'circle-stroke-width': 1,
+      'circle-stroke-color': '#fff'
+    }
+  });
+
+  map.on('click', 'landmarks-layer', (e) => {
+    const props = e.features[0].properties;
+    new mapboxgl.Popup()
+      .setLngLat(e.lngLat)
+      .setHTML(`<h3>${props.Landmark}</h3><p>${props.Address}</p>`)
+      .addTo(map);
+  });
+});
 
         // Add point layer
         map.addLayer({
