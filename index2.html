@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BAHA Landmarks Map - Katy Durand</title>
+    <script src="https://api.mapbox.com/mapbox-gl-js/v3.2.0/mapbox-gl.js"></script>
+    <link
+      href="https://api.mapbox.com/mapbox-gl-js/v3.2.0/mapbox-gl.css"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+      }
+      #map {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 100%;
+      }
+      .mapboxgl-popup {
+        max-width: 300px;
+        font: 14px/20px "Helvetica Neue", Arial, Helvetica, sans-serif;
+      }
+      .info-box {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background: white;
+        padding: 8px 12px;
+        border-radius: 8px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        font-family: sans-serif;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="map"></div>
+    <div class="info-box">
+      <strong>BAHA Landmarks</strong><br />
+      by Katy Durand, 2025<br />
+      Data source: Berkeley Architectural Heritage Association
+    </div>
+
+    <script>
+      // --- Map setup ---
+      mapboxgl.accessToken =
+        "pk.eyJ1Ijoia2F0eWR1cmFuZCIsImEiOiJjbWhiMW0zdXowMDZxMmpvb2U3ZGJmNW1kIn0.1SWX3PUdg5aLdTv6UhR_bg";
+
+      const map = new mapboxgl.Map({
+        container: "map",
+        style: "mapbox://styles/katydurand/cmhb4cc4q000y01sm6r3w82sn",
+        center: [-122.2727, 37.8715], // Berkeley
+        zoom: 13,
+      });
+
+      // Add zoom + rotation controls
+      map.addControl(new mapboxgl.NavigationControl());
+
+      // Load your GeoJSON data
+      map.on("load", () => {
+        map.addSource("baha", {
+          type: "geojson",
+          data: "183data.geojson",
+        });
+
+        // Add point layer
+        map.addLayer({
+          id: "baha-points",
+          type: "circle",
+          source: "baha",
+          paint: {
+            "circle-radius": 6,
+            "circle-color": "#e63946",
+            "circle-stroke-width": 1,
+            "circle-stroke-color": "#fff",
+          },
+        });
+
+        // Add popups
+        map.on("click", "baha-points", (e) => {
+          const coordinates = e.features[0].geometry.coordinates.slice();
+          const props = e.features[0].properties;
+          const popupContent = `
+            <strong>${props.Landmark || "Unnamed Landmark"}</strong><br>
+            ${props.Address || ""}<br>
+            <em>${props["Architect + Date"] || ""}</em><br>
+            <a href="${props.Link || "#"}" target="_blank">More info</a>
+          `;
+          new mapboxgl.Popup()
+            .setLngLat(coordinates)
+            .setHTML(popupContent)
+            .addTo(map);
+        });
+
+        // Change cursor to pointer on hover
+        map.on("mouseenter", "baha-points", () => {
+          map.getCanvas().style.cursor = "pointer";
+        });
+        map.on("mouseleave", "baha-points", () => {
+          map.getCanvas().style.cursor = "";
+        });
+      });
+    </script>
+
+    <!-- Map made by Katy Durand, 2025. Data from BAHA. -->
+  </body>
+</html>
